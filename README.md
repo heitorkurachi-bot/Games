@@ -27,11 +27,14 @@ Roda direto no navegador, sem instalar nada.
 |----------------------|--------|-----------|-------------------------------------------------------|
 | Masmorra Coop        | Coop   | 2–4       | 5 fases: gemas, placas de pressão, portas, espinhos, patrulhas |
 | Escalada Coop        | Coop   | 2–4       | 5 fases de plataforma: torre humana (subir na cabeça do colega), molas, placas e portas |
+| A Ilha Perdida       | Aventura | 2       | 5 fases (floresta, caverna, templo, ruínas, covil): espada, esquiva, chaves, baús, placas duplas e chefão |
 | Chuva de Meteoros    | Coop   | 1–4       | 7 ondas de sobrevivência, com reviver e MVP por cristais |
 | Batalha de Tanques   | Versus | 2–4       | 4 arenas em rodízio; vence quem fizer 3 rodadas |
 | Motos de Luz         | Versus | 2–4       | 5 arenas com velocidade crescente; vence quem fizer 3 rodadas |
 | Hóquei de Mesa       | Times  | 2–4       | 3 períodos (clássico, pinball, dois discos) + gol de ouro no empate |
 | Batata Quente        | Festa  | 2–4       | 4 arenas em rodízio; quem fica com a bomba sai; vence quem fizer 3 rodadas |
+
+Na **Ilha Perdida** (só para 2): AÇÃO = espada, EXTRA = esquiva (fica invulnerável por um instante). Cortem arbustos, abram baús para achar chaves, pisem os dois nas placas ao mesmo tempo para abrir portas e derrotem o Golem de Pedra. Quem cai é revivido pelo colega; se os dois caírem, a fase recomeça.
 
 No Hóquei os jogadores são divididos alternadamente entre os times Laranja e Ciano (1x1, 2x1 ou 2x2). Com 3 jogadores, quem joga sozinho ganha um rebatedor maior e mais rápido.
 

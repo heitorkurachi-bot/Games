@@ -102,7 +102,8 @@ class LobbyScene {
 }
 
 // ================================================================ Seleção de jogo
-const TAG_COLORS = { COOP: '#5ee38b', VERSUS: '#ff5d73', TIMES: '#4dabff', FESTA: '#ffd23f' };
+const TAG_COLORS = { COOP: '#5ee38b', VERSUS: '#ff5d73', TIMES: '#4dabff', FESTA: '#ffd23f', AVENTURA: '#c084fc' };
+const NON_COMPETITIVE = ['COOP', 'AVENTURA'];
 const TOURNAMENT_SIZE = 4;
 
 class SelectScene {
@@ -122,12 +123,13 @@ class SelectScene {
   // O campeonato usa só jogos competitivos que comportam o grupo atual
   champGames() {
     const n = Engine.players.length;
-    return GAMES.filter((g) => g.tag !== 'COOP' && n >= g.min && n <= g.max);
+    return GAMES.filter((g) => !NON_COMPETITIVE.includes(g.tag) && n >= g.min && n <= g.max);
   }
 
   enabled(i) {
     if (i === GAMES.length) return Engine.players.length >= 2 && this.champGames().length >= 2;
-    return Engine.players.length >= GAMES[i].min;
+    const n = Engine.players.length;
+    return n >= GAMES[i].min && n <= GAMES[i].max;
   }
 
   update(dt) {
@@ -178,14 +180,17 @@ class SelectScene {
       ctx.restore();
       const tx = r.x + 126, maxW = r.w - 138;
       Draw.text(ctx, def.name, tx, r.y + 30, { size: 24, weight: 800, align: 'left' });
-      Draw.panel(ctx, tx, r.y + 46, 78, 22, TAG_COLORS[def.tag], null, 11);
-      Draw.text(ctx, def.tag, tx + 39, r.y + 58, { size: 13, weight: 900, color: '#10131f' });
-      Draw.text(ctx, `${def.min}–${def.max} jogadores`, tx + 88, r.y + 58, { size: 15, weight: 600, align: 'left', color: '#c3c9e6' });
+      const tagW = def.tag.length > 6 ? 98 : 78;
+      Draw.panel(ctx, tx, r.y + 46, tagW, 22, TAG_COLORS[def.tag], null, 11);
+      Draw.text(ctx, def.tag, tx + tagW / 2, r.y + 58, { size: 13, weight: 900, color: '#10131f' });
+      const count = def.min === def.max ? `${def.min} jogadores` : `${def.min}–${def.max} jogadores`;
+      Draw.text(ctx, count, tx + tagW + 10, r.y + 58, { size: 15, weight: 600, align: 'left', color: '#c3c9e6' });
       wrapText(ctx, def.desc.join(' '), maxW, 15).slice(0, 3)
         .forEach((line, k) => Draw.text(ctx, line, tx, r.y + 88 + k * 20, { size: 15, weight: 500, align: 'left', color: '#a9b1d6' }));
       if (!ok) {
         Draw.panel(ctx, r.x, r.y, r.w, r.h, 'rgba(5,6,14,0.74)', null, 16);
-        Draw.text(ctx, `Precisa de pelo menos ${def.min} jogadores`, r.x + r.w / 2, r.y + r.h / 2, { size: 21, color: '#ffd23f' });
+        const msg = Engine.players.length > def.max ? `Máximo de ${def.max} jogadores` : `Precisa de pelo menos ${def.min} jogadores`;
+        Draw.text(ctx, msg, r.x + r.w / 2, r.y + r.h / 2, { size: 21, color: '#ffd23f' });
       }
     });
 

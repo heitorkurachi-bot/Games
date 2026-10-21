@@ -166,6 +166,7 @@ const Sfx = (() => {
     door: () => tone(200, 0.12, 'triangle', 0.07, 120),
     bump: () => tone(320, 0.05, 'square', 0.05, 80),
     jump: () => tone(380, 0.12, 'square', 0.035, 380),
+    swing: () => tone(700, 0.07, 'sawtooth', 0.03, -400),
     beep: () => tone(1200, 0.04, 'square', 0.035),
     tick: () => tone(440, 0.1, 'triangle', 0.08),
     go: () => tone(880, 0.3, 'triangle', 0.1),
