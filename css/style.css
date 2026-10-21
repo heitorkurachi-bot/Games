@@ -1,0 +1,23 @@
+html, body {
+  margin: 0;
+  height: 100%;
+  background: #05060d;
+  overflow: hidden;
+}
+
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Mantém 16:9 ocupando o máximo da janela */
+#game {
+  width: 100vw;
+  height: 56.25vw;
+  max-height: 100vh;
+  max-width: 177.78vh;
+  display: block;
+  image-rendering: auto;
+  cursor: crosshair;
+}
