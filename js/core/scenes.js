@@ -4,8 +4,17 @@
 class LobbyScene {
   enter() { this.t = 0; }
 
+  gearRect() { return { x: W - 250, y: 18, w: 230, h: 46 }; }
+
   update(dt) {
     this.t += dt;
+    const gear = Menu.pointer([this.gearRect()]);
+    if (Input.mouseMoved) this.gearHover = gear.hover >= 0;
+    if (gear.click >= 0 || Input.devices.some((d) => d.available && d.pressed('start'))) {
+      Sfx.play('confirm');
+      Engine.setScene(new SettingsScene());
+      return;
+    }
     const P = Engine.players;
     for (const d of Input.devices) {
       if (!d.available) continue;
@@ -29,13 +38,18 @@ class LobbyScene {
     const used = Engine.players.map((p) => p.slot);
     let slot = 0;
     while (used.includes(slot)) slot++;
-    Engine.players.push({ slot, name: 'Jogador ' + (slot + 1), color: PLAYER_COLORS[slot], device: d, score: 0, joinedAt: Engine.time });
+    const prof = Settings.profiles[slot];
+    Engine.players.push({ slot, name: prof.name, color: prof.color, device: d, score: 0, joinedAt: Engine.time });
     Engine.players.sort((a, b) => a.slot - b.slot);
     Sfx.play('confirm');
   }
 
   draw(ctx) {
     drawBackdrop(ctx, this.t);
+    const g = this.gearRect();
+    Draw.panel(ctx, g.x, g.y, g.w, g.h, this.gearHover ? '#2b3266' : 'rgba(24,28,52,0.9)', this.gearHover ? '#8ea2ff' : 'rgba(255,255,255,0.14)', 12, 2);
+    Draw.text(ctx, 'Configurações', g.x + 16, g.y + 17, { size: 18, align: 'left' });
+    Draw.text(ctx, 'Esc · Start · clique', g.x + 16, g.y + 35, { size: 13, weight: 500, align: 'left', color: '#8b93b8' });
     Draw.text(ctx, 'ARCADE EM GRUPO', W / 2, 92, { size: 76, weight: 900, color: '#fff', shadow: '#7c8cff', blur: 30 });
     Draw.text(ctx, '2 a 4 jogadores  ·  controle, teclado ou mouse  ·  coop e versus', W / 2, 150, { size: 22, weight: 500, color: '#a9b1d6' });
 
@@ -99,9 +113,9 @@ class SelectScene {
 
   // Cards dos jogos + botão do campeonato (último índice)
   rects() {
-    const w = 580, h = 146, gx = 30, gy = 14, x0 = (W - (2 * w + gx)) / 2, y0 = 94;
-    const r = GAMES.map((_, i) => ({ x: x0 + (i % 2) * (w + gx), y: y0 + Math.floor(i / 2) * (h + gy), w, h }));
-    r.push({ x: W / 2 - 330, y: y0 + Math.ceil(GAMES.length / 2) * (h + gy) + 2, w: 660, h: 50 });
+    const C = SelectScene.COLS, w = 396, h = 150, gx = 14, gy = 12, x0 = (W - (C * w + (C - 1) * gx)) / 2, y0 = 92;
+    const r = GAMES.map((_, i) => ({ x: x0 + (i % C) * (w + gx), y: y0 + Math.floor(i / C) * (h + gy), w, h }));
+    r.push({ x: W / 2 - 330, y: y0 + Math.ceil(GAMES.length / C) * (h + gy) + 2, w: 660, h: 50 });
     return r;
   }
 
@@ -125,8 +139,9 @@ class SelectScene {
     } else {
       if (n.left) this.sel = Math.max(0, this.sel - 1);
       if (n.right) this.sel = Math.min(N - 1, this.sel + 1);
-      if (n.up && this.sel >= 2) this.sel -= 2;
-      if (n.down) this.sel = this.sel + 2 < N ? this.sel + 2 : N;
+      const C = SelectScene.COLS;
+      if (n.up && this.sel >= C) this.sel -= C;
+      if (n.down) this.sel = this.sel + C < N ? this.sel + C : N;
     }
     const p = Menu.pointer(this.rects());
     if (p.hover >= 0) this.sel = p.hover;
@@ -155,18 +170,19 @@ class SelectScene {
     GAMES.forEach((def, i) => {
       const r = rects[i], sel = i === this.sel, ok = this.enabled(i);
       Draw.panel(ctx, r.x, r.y, r.w, r.h, sel ? 'rgba(34,40,78,0.97)' : 'rgba(18,21,40,0.92)', sel ? '#8ea2ff' : 'rgba(255,255,255,0.08)', 16, sel ? 3 : 2);
-      Draw.panel(ctx, r.x + 14, r.y + 14, 120, r.h - 28, 'rgba(8,10,22,0.8)', null, 12);
+      Draw.panel(ctx, r.x + 12, r.y + 12, 100, r.h - 24, 'rgba(8,10,22,0.8)', null, 12);
       ctx.save();
-      ctx.translate(r.x + 74, r.y + r.h / 2);
-      ctx.scale(0.8, 0.8);
+      ctx.translate(r.x + 62, r.y + r.h / 2);
+      ctx.scale(0.68, 0.68);
       def.icon(ctx, 0, 0, this.t);
       ctx.restore();
-      const tx = r.x + 152;
-      Draw.text(ctx, def.name, tx, r.y + 34, { size: 28, weight: 800, align: 'left' });
-      Draw.panel(ctx, tx, r.y + 55, 88, 25, TAG_COLORS[def.tag], null, 12);
-      Draw.text(ctx, def.tag, tx + 44, r.y + 68, { size: 14, weight: 900, color: '#10131f' });
-      Draw.text(ctx, `${def.min}–${def.max} jogadores`, tx + 100, r.y + 68, { size: 16, weight: 600, align: 'left', color: '#c3c9e6' });
-      def.desc.forEach((line, k) => Draw.text(ctx, line, tx, r.y + 100 + k * 23, { size: 17, weight: 500, align: 'left', color: '#a9b1d6' }));
+      const tx = r.x + 126, maxW = r.w - 138;
+      Draw.text(ctx, def.name, tx, r.y + 30, { size: 24, weight: 800, align: 'left' });
+      Draw.panel(ctx, tx, r.y + 46, 78, 22, TAG_COLORS[def.tag], null, 11);
+      Draw.text(ctx, def.tag, tx + 39, r.y + 58, { size: 13, weight: 900, color: '#10131f' });
+      Draw.text(ctx, `${def.min}–${def.max} jogadores`, tx + 88, r.y + 58, { size: 15, weight: 600, align: 'left', color: '#c3c9e6' });
+      wrapText(ctx, def.desc.join(' '), maxW, 15).slice(0, 3)
+        .forEach((line, k) => Draw.text(ctx, line, tx, r.y + 88 + k * 20, { size: 15, weight: 500, align: 'left', color: '#a9b1d6' }));
       if (!ok) {
         Draw.panel(ctx, r.x, r.y, r.w, r.h, 'rgba(5,6,14,0.74)', null, 16);
         Draw.text(ctx, `Precisa de pelo menos ${def.min} jogadores`, r.x + r.w / 2, r.y + r.h / 2, { size: 21, color: '#ffd23f' });
@@ -187,6 +203,21 @@ class SelectScene {
     const hint = this.sel < GAMES.length ? `${GAMES[this.sel].controls}   ·   ` : '';
     Draw.text(ctx, `${hint}AÇÃO: jogar   ·   EXTRA: voltar   ·   Esc/Start: pausa`, W / 2, 704, { size: 16, weight: 500, color: '#8b93b8' });
   }
+}
+
+SelectScene.COLS = 3;
+
+// Quebra um texto em linhas que caibam na largura dada
+function wrapText(ctx, text, maxW, size, weight = 500) {
+  ctx.font = `${weight} ${size}px ${FONT}`;
+  const lines = [];
+  let cur = '';
+  for (const word of text.split(' ')) {
+    const test = cur ? cur + ' ' + word : word;
+    if (ctx.measureText(test).width > maxW && cur) { lines.push(cur); cur = word; } else cur = test;
+  }
+  if (cur) lines.push(cur);
+  return lines;
 }
 
 // ================================================================ Resultado

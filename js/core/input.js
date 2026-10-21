@@ -14,7 +14,11 @@ const Input = (() => {
   let frameMoved = false;
   let escNow = false, escPrev = false;
 
+  // Quando definido, captura o próximo keydown (usado para digitar nomes e remapear teclas)
+  let capture = null;
+
   window.addEventListener('keydown', (e) => {
+    if (capture) { e.preventDefault(); capture(e); return; }
     keys.add(e.code);
     if (e.code.startsWith('Arrow') || e.code === 'Space' || e.code === 'Backspace') e.preventDefault();
   });
@@ -51,7 +55,8 @@ const Input = (() => {
 
   class Device {
     constructor(id, kind, name, hint) {
-      Object.assign(this, { id, kind, name, hint });
+      Object.assign(this, { id, kind, name });
+      if (hint) this.hint = hint;
       this.cur = { ...EMPTY };
       this.prev = { ...EMPTY };
     }
@@ -64,9 +69,14 @@ const Input = (() => {
   }
 
   class KeyboardDevice extends Device {
-    constructor(id, name, hint, map) {
-      super(id, 'keyboard', name, hint);
-      this.map = map;
+    constructor(id, name, map) {
+      super(id, 'keyboard', name, null);
+      this.map = { ...map };
+      this.defaults = { ...map };
+    }
+    get hint() {
+      const m = this.map, k = keyLabel;
+      return `${k(m.up)} ${k(m.left)} ${k(m.down)} ${k(m.right)} mover · ${k(m.a)} ação · ${k(m.b)} extra`;
     }
     read() {
       const m = this.map, k = (c) => keys.has(c);
@@ -118,15 +128,31 @@ const Input = (() => {
   }
 
   const devices = [
-    new KeyboardDevice('kb1', 'Teclado (WASD)', 'WASD mover · F ação · G extra',
+    new KeyboardDevice('kb1', 'Teclado (WASD)',
       { up: 'KeyW', down: 'KeyS', left: 'KeyA', right: 'KeyD', a: 'KeyF', b: 'KeyG', start: 'Escape' }),
-    new KeyboardDevice('kb2', 'Teclado (Setas)', 'Setas mover · Enter ação · Shift dir. extra',
+    new KeyboardDevice('kb2', 'Teclado (Setas)',
       { up: 'ArrowUp', down: 'ArrowDown', left: 'ArrowLeft', right: 'ArrowRight', a: 'Enter', b: 'ShiftRight', start: 'Backspace' }),
-    new KeyboardDevice('kb3', 'Teclado (IJKL)', 'IJKL mover · U ação · O extra',
+    new KeyboardDevice('kb3', 'Teclado (IJKL)',
       { up: 'KeyI', down: 'KeyK', left: 'KeyJ', right: 'KeyL', a: 'KeyU', b: 'KeyO', start: 'KeyP' }),
     new MouseDevice(),
     new GamepadDevice(0), new GamepadDevice(1), new GamepadDevice(2), new GamepadDevice(3),
   ];
+
+  // Nome legível de uma tecla a partir do KeyboardEvent.code
+  function keyLabel(code) {
+    if (!code) return '—';
+    const named = {
+      ArrowUp: '↑', ArrowDown: '↓', ArrowLeft: '←', ArrowRight: '→', Space: 'Espaço', Enter: 'Enter',
+      ShiftLeft: 'Shift esq.', ShiftRight: 'Shift dir.', ControlLeft: 'Ctrl esq.', ControlRight: 'Ctrl dir.',
+      AltLeft: 'Alt', AltRight: 'AltGr', Backspace: 'Backspace', Tab: 'Tab', Escape: 'Esc',
+      Comma: ',', Period: '.', Slash: '/', Semicolon: 'Ç', Quote: '~', BracketLeft: '´', BracketRight: '[', Backslash: ']', Minus: '-', Equal: '=',
+    };
+    if (named[code]) return named[code];
+    if (code.startsWith('Key')) return code.slice(3);
+    if (code.startsWith('Digit')) return code.slice(5);
+    if (code.startsWith('Numpad')) return 'Num ' + code.slice(6);
+    return code;
+  }
 
   function update() {
     for (const d of devices) d.update();
@@ -139,6 +165,8 @@ const Input = (() => {
   return {
     attach,
     update,
+    keyLabel,
+    setCapture(fn) { capture = fn; },
     devices,
     mouse,
     get mouseMoved() { return frameMoved; },

@@ -2,6 +2,8 @@
 
 const W = 1280, H = 720;
 const PLAYER_COLORS = ['#ff5d73', '#4dabff', '#ffd23f', '#5ee38b'];
+// Cores que podem ser escolhidas nas configurações
+const PALETTE = [...PLAYER_COLORS, '#c084fc', '#fb923c', '#2dd4bf', '#f472b6', '#e5e7eb'];
 const FONT = '"Segoe UI", Roboto, Ubuntu, "Helvetica Neue", Arial, sans-serif';
 
 // Cada arquivo em js/games/ adiciona sua definição aqui.
@@ -117,6 +119,7 @@ class Particles {
 // ---------------------------------------------------------------- sons (sintetizados, sem arquivos)
 const Sfx = (() => {
   let ac = null;
+  let master = 0.8;
   function ensure() {
     if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { /* sem áudio */ } }
     if (ac && ac.state === 'suspended') ac.resume();
@@ -132,21 +135,22 @@ const Sfx = (() => {
     o.type = type;
     o.frequency.setValueAtTime(freq, t0);
     if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(30, freq + slide), t0 + dur);
-    g.gain.setValueAtTime(vol, t0);
+    if (master <= 0) return;
+    g.gain.setValueAtTime(vol * master, t0);
     g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
     o.connect(g).connect(ac.destination);
     o.start(t0);
     o.stop(t0 + dur + 0.02);
   }
   function noise(dur, vol = 0.15) {
-    if (!ac || ac.state !== 'running') return;
+    if (!ac || ac.state !== 'running' || master <= 0) return;
     const len = Math.floor(ac.sampleRate * dur);
     const buf = ac.createBuffer(1, len, ac.sampleRate);
     const data = buf.getChannelData(0);
     for (let i = 0; i < len; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / len);
     const src = ac.createBufferSource(), g = ac.createGain();
     src.buffer = buf;
-    g.gain.value = vol;
+    g.gain.value = vol * master;
     src.connect(g).connect(ac.destination);
     src.start();
   }
@@ -161,13 +165,17 @@ const Sfx = (() => {
     hurt: () => tone(240, 0.25, 'sawtooth', 0.07, -160),
     door: () => tone(200, 0.12, 'triangle', 0.07, 120),
     bump: () => tone(320, 0.05, 'square', 0.05, 80),
+    jump: () => tone(380, 0.12, 'square', 0.035, 380),
     beep: () => tone(1200, 0.04, 'square', 0.035),
     tick: () => tone(440, 0.1, 'triangle', 0.08),
     go: () => tone(880, 0.3, 'triangle', 0.1),
     win: () => [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.18, 'triangle', 0.08, 0, i * 0.11)),
     lose: () => [392, 330, 262, 196].forEach((f, i) => tone(f, 0.2, 'triangle', 0.08, 0, i * 0.13)),
   };
-  return { play(name) { try { ensure(); if (sounds[name]) sounds[name](); } catch (e) { /* ignora */ } } };
+  return {
+    get volume() { return master; },
+    set volume(v) { master = clamp(v, 0, 1); },
+    play(name) { try { ensure(); if (sounds[name]) sounds[name](); } catch (e) { /* ignora */ } } };
 })();
 
 // ---------------------------------------------------------------- menus com mouse

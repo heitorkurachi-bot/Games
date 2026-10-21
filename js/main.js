@@ -1,3 +1,6 @@
 'use strict';
 
-window.addEventListener('load', () => Engine.init());
+window.addEventListener('load', () => {
+  Settings.load();
+  Engine.init();
+});

@@ -9,6 +9,7 @@ Roda direto no navegador, sem instalar nada.
 2. Cada jogador aperta **AÇÃO** no seu dispositivo para entrar.
 3. O Jogador 1 (anfitrião) aperta **AÇÃO** de novo para escolher o jogo.
 4. **Esc** ou **Start** pausa a partida (dá para continuar, reiniciar ou voltar ao menu).
+5. No lobby, **Esc**, **Start** ou um clique em *Configurações* abre as configurações.
 
 | Dispositivo      | Mover           | Ação          | Extra          |
 |------------------|-----------------|---------------|----------------|
@@ -25,6 +26,7 @@ Roda direto no navegador, sem instalar nada.
 | Jogo                 | Tipo   | Jogadores | Fases                                                 |
 |----------------------|--------|-----------|-------------------------------------------------------|
 | Masmorra Coop        | Coop   | 2–4       | 5 fases: gemas, placas de pressão, portas, espinhos, patrulhas |
+| Escalada Coop        | Coop   | 2–4       | 5 fases de plataforma: torre humana (subir na cabeça do colega), molas, placas e portas |
 | Chuva de Meteoros    | Coop   | 1–4       | 7 ondas de sobrevivência, com reviver e MVP por cristais |
 | Batalha de Tanques   | Versus | 2–4       | 4 arenas em rodízio; vence quem fizer 3 rodadas |
 | Motos de Luz         | Versus | 2–4       | 5 arenas com velocidade crescente; vence quem fizer 3 rodadas |
@@ -39,6 +41,14 @@ Na tela de seleção, o botão **Modo Campeonato** sorteia até 4 jogos competit
 
 O **placar da sessão** soma os pontos ao longo da noite: quem vence um versus ganha 1 ponto, e uma vitória coop dá 1 ponto para todos.
 
+## Configurações
+
+- **Jogadores:** nome (digite no teclado, ou use ◀ ▶ para escolher sugestões com o controle) e cor de cada vaga.
+- **Controles:** remapeie as teclas dos três esquemas de teclado. Se a tecla já estiver em uso, as duas trocam de lugar.
+- **Som:** volume geral (ou mudo).
+
+Tudo fica salvo no navegador (`localStorage`) e volta na próxima vez que o jogo for aberto.
+
 ## Estrutura
 
 ```
@@ -46,7 +56,8 @@ index.html
 css/style.css
 js/core/input.js    Entrada unificada (teclado, mouse, controles)
 js/core/engine.js   Laço do jogo, pausa, desenho, sons, partículas
-js/core/scenes.js   Lobby, seleção de jogo, resultado
+js/core/scenes.js   Lobby, seleção de jogo, resultado, pódio
+js/core/settings.js Configurações salvas e tela de configurações
 js/games/*.js       Um arquivo por jogo
 ```
 
